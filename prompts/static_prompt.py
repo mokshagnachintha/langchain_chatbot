@@ -1,8 +1,8 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import streamlit as st
-from langchain_core.prompts import PromptTemplate
-
+from pathlib import Path
+from langchain_core.prompts import load_prompt
 
 
 
@@ -13,7 +13,7 @@ load_dotenv()
 
 
 chatmodel=ChatGoogleGenerativeAI(model='gemini-2.5-flash')
-result=chatmodel.invoke('what is the capital of india')
+
 print(result.content)
 
 st.title('research model')
@@ -24,20 +24,13 @@ style_input=st.selectbox('select style',['summarize','explain like im 5','key po
 
 length_input=st.selectbox('select length',['short','medium','long'])
 
-temp=PromptTemplate(
-    input_variables=['paper','style','length'],
-    template='give a {length} {style} of the research paper titled {paper}'
-)
-prompt = temp.invoke({
-    'paper':paper_input,
-    'style':style_input,
-    'length':length_input
-})
-
+temp = load_prompt('prompts/prompt_template.json')
 
 
 
 if st.button('summarize'):
+    chain= temp | chatmodel
+    prompt=chain.invoke({'paper':paper_input,'style':style_input,'length':length_input})    
+
     st.write('generating summary...')
-    result=chatmodel.invoke(prompt) 
-    st.write(result.content)                                       
+    st.write(prompt.content)
